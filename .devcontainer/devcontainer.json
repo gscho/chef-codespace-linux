@@ -8,12 +8,13 @@
     "chef-software.chef"
   ],
   "settings": {
-    "extensions.ignoreRecommendations": true
-  },
-  "terminal.integrated.profiles.linux": {
-    "default": {
-      "path": "/bin/bash"
-    }
-  },
-  "terminal.integrated.defaultProfile.linux": "default"
+    "extensions.ignoreRecommendations": true,
+    "terminal.integrated.profiles.linux": {
+      "default": {
+        "path": "/bin/bash"
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "default"
+  }
+
 }
