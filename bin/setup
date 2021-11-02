@@ -59,11 +59,11 @@ class Chef
     end
 
     def write_keys(settings)
-      FileUtils.mkdir_p "/.chef"
-      File.open("/.chef/#{settings['client_key']}", "w+") do |file|
+      FileUtils.mkdir_p "/root/.chef"
+      File.open("/root/.chef/#{settings['client_key']}", "w+") do |file|
         file.write(fetch_required("CS_CHEF_CLIENT_KEY"))
       end
-      File.open("/.chef/#{settings['validator_key']}", "w+") do |file|
+      File.open("/root/.chef/#{settings['validator_key']}", "w+") do |file|
         file.write(fetch_required("CS_CHEF_VALIDATOR_KEY"))
       end if settings["validator_key"]
     end
@@ -78,7 +78,7 @@ class Chef
       set_optional_values!(chef_settings)
       write_keys(chef_settings)
 
-      File.open("/.chef/credentials", "w+") do |file|
+      File.open("/root/.chef/credentials", "w+") do |file|
         file.puts("[default]")
         chef_settings.each do |k,v|
            file.puts("#{k} = \"#{v}\"")
