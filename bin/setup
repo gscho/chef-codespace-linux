@@ -1,22 +1,91 @@
 #!/usr/bin/env ruby
 
-def bldr_url
-  ENV.fetch("CS_HAB_BLDR_URL", "https://bldr.habitat.sh")
-end
+require 'fileutils'
+require 'logger'
 
-def set_optional_values!(settings)
-  settings["auth_token"] = ENV['CS_HAB_AUTH_TOKEN'] if ENV['CS_HAB_AUTH_TOKEN']
-  settings["origin"] = ENV['CS_HAB_ORIGIN'] if ENV['CS_HAB_ORIGIN']
-end
+Log = Logger.new('setup.log')
 
-cli_settings = {
-  "bldr_url" => bldr_url
-}
+class Habitat
+  class << self
+    def bldr_url
+      ENV.fetch("CS_HAB_BLDR_URL", "https://bldr.habitat.sh")
+    end
 
-set_optional_values!(cli_settings)
+    def set_optional_values!(settings)
+      settings["auth_token"] = ENV['CS_HAB_AUTH_TOKEN'] if ENV['CS_HAB_AUTH_TOKEN']
+      settings["origin"] = ENV['CS_HAB_ORIGIN'] if ENV['CS_HAB_ORIGIN']
+    end
 
-File.open("/hab/etc/cli.toml", "w") do |file|
-  cli_settings.each do |k,v|
-     file.write("#{k} = \"#{v}\"")
+    def configure
+      cli_settings = {
+        "bldr_url" => bldr_url
+      }
+      set_optional_values!(cli_settings)
+
+      FileUtils.mkdir_p "/hab/etc"
+
+      File.open("/hab/etc/cli.toml", "w") do |file|
+        cli_settings.each do |k,v|
+           file.puts("#{k} = \"#{v}\"")
+        end
+      end
+    rescue Exception => e
+      Log.error(e)
+    end
   end
 end
+
+class Chef
+  class << self
+    def fetch_required(var_name)
+      fail "Must provide #{var_name} via codespace secrets" unless ENV[var_name]
+      ENV[var_name]
+    end
+
+    def key_name(suffix)
+      fetch_required("CS_CHEF_CLIENT_NAME") + suffix
+    end
+
+    def client_key_name
+      key_name(".pem")
+    end
+
+    def validator_key_name
+      key_name("-validator.pem")
+    end
+
+    def set_optional_values!(settings)
+      settings["validator_key"] = validator_key_name if ENV["CS_CHEF_VALIDATOR_KEY"] 
+    end
+
+    def write_keys(settings)
+      File.write("~/.chef/#{settings['client_key']}", fetch_required("CS_CHEF_CLIENT_KEY"))
+      File.write("~/.chef/#{settings['validator_key']}", fetch_required("CS_CHEF_VALIDATOR_KEY")) if settings["validator_key"]
+    end
+
+    def configure
+      chef_settings = {
+        "client_name" => fetch_required("CS_CHEF_CLIENT_NAME"),
+        "client_key" => client_key_name,
+        "chef_server_url" => fetch_required("CS_CHEF_SERVER_URL")
+      }
+
+      set_optional_values!(chef_settings)
+      write_keys(chef_settings)
+
+      FileUtils.mkdir_p "~/.chef"
+
+      File.open("~/.chef/credentials", "w") do |file|
+        file.puts("[default]")
+        chef_settings.each do |k,v|
+           file.puts("#{k} = \"#{v}\"")
+        end
+      end
+    rescue Exception => e
+      Log.error(e)
+    end
+  end
+end
+
+Habitat.configure
+Chef.configure

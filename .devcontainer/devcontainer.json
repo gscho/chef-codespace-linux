@@ -1,5 +1,5 @@
 {
-  "image": "chef/chefworkstation",
+  "image": "chef/chefworkstation:stable",
   "containerEnv": {
     "CHEF_LICENSE": "accept",
     "HAB_LICENSE": "accept"
