@@ -11,5 +11,5 @@
     "extensions.ignoreRecommendations": true,
     "terminal.integrated.defaultProfile.linux": "bash"
   },
-  "postCreateCommand": ["bash", "configure.sh"]
+  "postCreateCommand": "./bin/setup"
 }

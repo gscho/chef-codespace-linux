@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+def bldr_url
+  ENV.fetch("CS_HAB_BLDR_URL", "https://bldr.habitat.sh")
+end
+
+def set_optional_values!(settings)
+  settings["auth_token"] = ENV['CS_HAB_AUTH_TOKEN'] if ENV['CS_HAB_AUTH_TOKEN']
+  settings["origin"] = ENV['CS_HAB_ORIGIN'] if ENV['CS_HAB_ORIGIN']
+end
+
+cli_settings = {
+  "bldr_url" => bldr_url
+}
+
+set_optional_values!(cli_settings)
+
+File.open("/hab/etc/cli.toml", "w") do |file|
+  cli_settings.each do |k,v|
+     file.write("#{k} = \"#{v}\"")
+  end
+end
