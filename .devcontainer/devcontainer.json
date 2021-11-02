@@ -1,3 +1,5 @@
 {
-  "image": "chef/chefworkstation"
+  "image": "chef/chefworkstation",
+  "containerEnv": { "CHEF_LICENSE": "accept", "HAB_LICENSE": "accept" },
+  "extensions": ["chef-software.chef"]
 }
